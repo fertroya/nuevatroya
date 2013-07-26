@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link href='/javascripts/fullcalendar/fullcalendar.css' rel='stylesheet' />
+<link href='/javascripts/fullcalendar/fullcalendar.print.css' rel='stylesheet' media='print' />
+<link href='/stylesheets/redmond/jquery-ui-1.10.3.custom.min.css' rel='stylesheet' />
+<link href='/javascripts/fullcalendar/fullcalendar.css' rel='stylesheet' />
+<script src='/javascripts/jquery/jquery-1.9.1.min.js'></script>
+<script src='/javascripts/jquery/jquery-ui-1.10.3.custom.min.js'></script>
+<script src='/javascripts/fullcalendar/fullcalendar.min.js'></script>
+<script src='/javascripts/fullcalendar/gcal.js'></script>
+<style>
+    body { font-size: 72.5%; }
+    label, input, textarea { display:block; }
+    input.text { margin-bottom:12px; width:95%; padding: .4em; }
+    textarea.text { height: 5em; width:95%; padding: .4em; }
+    fieldset { padding:0; border:0; margin-top:25px; }
+</style>
+<script>
+
+	$(document).ready(function() {
+		var name = $( "#name" ),
+     		comments = $( "#comment" ),
+      		contactInfo = $( "#contactInfo" );
+
+		var calendar = $('#calendar').fullCalendar({
+			theme: true,
+			events: '{{calendarFeedUrl}}',
+			minTime: '{{minTime}}',
+			maxTime: '{{maxTime}}',
+			defaultView: 'agendaWeek',
+			selectable: true,
+			editable: false,
+			allDaySlot:false,
+			disableDragging: true,
+			hiddenDays: {{hiddenDays}},
+			axisFormat:'H:mm',
+			buttonText: {today: 'hoy'},
+			select: function(start, end, allDay) {
+				
+				end = new Date(start);
+   			    end.setHours(end.getHours() + 1);
+
+				$( "#dialog-form" ).data("start", start);
+				$( "#dialog-form" ).data("end", end);
+				$( "#dialog-form" ).dialog( "open" );
+
+			},
+
+			
+			loading: function(bool) {
+				if (bool) {
+					$('#loading').show();
+				}else{
+					$('#loading').hide();
+				}
+			},
+			titleFormat: {
+			    week: "d al { [ MMM] d} MMMM 'de' yyyy" // Sep 7 - 13 2009
+			},
+			
+			columnFormat: {  
+    			agendaWeek: 'dddd d', // Mon 9/7
+			},
+			
+			dayNames: ['Domingo', 'Lunes',  'Martes', 'Miércoles',
+			'Jueves', 'Viernes', 'Sábado'],
+
+			monthNames: ['Enero', 'Febrero',  'Marzo', 'Abril',
+			'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+			monthNamesShort: ['Ene', 'Feb',  'Mar', 'Abr',
+			'Mayo', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+	});
+	
+	 $('#dialog-form').dialog({
+	      autoOpen: false,
+	      height: 350,
+	      width: 350,
+	      modal: true,
+	      buttons: {
+	        "Confirmar": function() {
+
+				calendar.fullCalendar('renderEvent',
+					{
+						title: name.val(),
+						start: $( this ).data("start"),
+						end: $( this ).data("end"),
+						allDay:false
+					},
+					true // make the event "stick"
+				);
+				$.post("/createEvent",
+						{
+							calendarId: '{{calendarId}}',
+							title: name.val(),
+							start: $( this ).data("start"),
+							end: $( this ).data("end"),
+							contactInfo: contactInfo.val()
+						}
+				);
+				calendar.fullCalendar('unselect');
+	            $( this ).dialog( "close" );
+	        },
+	        "Cancelar": function() {
+	          $( this ).dialog( "close" );
+	        }
+	      },
+	      close: function() {
+	        $( this ).dialog( "close" );
+	      }
+	    });
+
+});
+</script>
+<style>		
+	#loading {
+		position: absolute;
+		top: 5px;
+		right: 5px;
+		}
+
+	#calendar {
+		width: 900px;
+		margin: 0 auto;
+		}
+
+</style>
+</head>
+<body>
+	<div id='dialog-form' title="Decinos cómo contactarte">
+		<form>
+			<fieldset>
+			<label for="name">Nombre</label>
+				<input type="text" name="name" id="name" class="text ui-widget-content ui-corner-all" />
+			<label for="contact">Teléfono o email</label>
+				<input type="contactInfo" name="contactInfo" id="contactInfo" value="" class="text ui-widget-content ui-corner-all" />
+			<label for="comment">Consulta o problema</label>
+				<textarea  name="comment" id="comment" value="" class="text ui-widget-content ui-corner-all"></textarea>
+			</fieldset>
+		</form>
+	</div>
+<div id='loading' style='display:none'>cargando...</div>
+<div id='calendar'></div>
+</body>
+</html>

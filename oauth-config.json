@@ -1,0 +1,9 @@
+{
+ "keyFile": "./oauth_keys/yourkey.pem"
+,"expiresInMinuteas": 60
+,"claim":{
+     "iss":"907176753513@developer.gserviceaccount.com"
+    ,"scope":"https://www.googleapis.com/auth/calendar"
+    ,"aud":"https://accounts.google.com/o/oauth2/token"
+ }
+}
